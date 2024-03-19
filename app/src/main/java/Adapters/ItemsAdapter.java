@@ -39,6 +39,10 @@ public class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.MyViewHolder
         return items.size();
     }
 
+    public void updateItems(List<Item> newItems) {
+        this.items = newItems;
+        notifyDataSetChanged();
+    }
     static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView itemName;
         TextView itemListId;

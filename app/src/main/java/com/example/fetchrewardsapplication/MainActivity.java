@@ -15,10 +15,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import Adapters.ItemsAdapter;
 import Model.Item;
@@ -34,10 +40,53 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.itemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        itemsAdapter = new ItemsAdapter(new ArrayList<>());
 
+        setUpSpinner();
         fetchItems();
     }
 
+    private void setUpSpinner() {
+        Set<Integer> listIdSet = new HashSet<>();
+        for (Item item : items) {
+            listIdSet.add(item.getListId());
+        }
+        List<Integer> listIds = new ArrayList<>(listIdSet);
+        Collections.sort(listIds);
+
+        Spinner listIdSpinner = findViewById(R.id.listIdSpinner);
+        ArrayAdapter<Integer> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, listIds);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        listIdSpinner.setAdapter(spinnerAdapter);
+
+        listIdSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                int selectedListId = listIds.get(position);
+                updateRecyclerView(selectedListId);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+    }
+
+    private void updateRecyclerView(int listId) {
+        List<Item> filteredItems = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getListId() == listId && item.getName() != "null" && !item.getName().isEmpty()) {
+                filteredItems.add(item);
+            }
+        }
+
+        Collections.sort(filteredItems);
+
+        if (itemsAdapter != null) {
+            itemsAdapter.updateItems(filteredItems);
+        }
+    }
     private void updateUI() {
         if (itemsAdapter == null) {
             itemsAdapter = new ItemsAdapter(items);
