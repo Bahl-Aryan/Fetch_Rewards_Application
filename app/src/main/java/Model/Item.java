@@ -15,6 +15,8 @@ public class Item implements Comparable<Item> {
     public int getId() {
         return id;
     }
+
+    //testing that this is actually working
     public int getListId() {
         return listId;
     }
