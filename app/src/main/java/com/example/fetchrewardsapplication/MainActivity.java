@@ -1,6 +1,7 @@
 package com.example.fetchrewardsapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,11 +16,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import Adapters.CustomSpinnerAdapter;
 import Adapters.ItemsAdapter;
 import Model.Item;
 
@@ -34,16 +43,63 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.itemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        itemsAdapter = new ItemsAdapter(new ArrayList<>());
+        recyclerView.setAdapter(itemsAdapter);
+        //updateUI();
         fetchItems();
     }
 
+    private void setUpSpinner() {
+        Set<Integer> listIdSet = new HashSet<>();
+        for (Item item : items) {
+            listIdSet.add(item.getListId());
+        }
+        List<Integer> listIds = new ArrayList<>(listIdSet);
+        Collections.sort(listIds);
+
+        Spinner listIdSpinner = findViewById(R.id.listIdSpinner);
+        ArrayAdapter<Integer> spinnerAdapter = new CustomSpinnerAdapter(this, listIds);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        listIdSpinner.setAdapter(spinnerAdapter);
+
+        listIdSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                int selectedListId = listIds.get(position);
+                updateRecyclerView(selectedListId);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+    }
+
+    private void updateRecyclerView(int listId) {
+        Log.d("UpdateRecyclerView", "Updating for listId: " + listId);
+        List<Item> filteredItems = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getListId() == listId) {
+                filteredItems.add(item);
+            }
+        }
+
+        Log.d("FilteredItems", "Filtered items count: " + filteredItems.size());
+
+        Collections.sort(filteredItems);
+        if (itemsAdapter != null) {
+            itemsAdapter.updateItems(filteredItems);
+        } else {
+            itemsAdapter = new ItemsAdapter(filteredItems);
+            recyclerView.setAdapter(itemsAdapter);
+        }
+    }
     private void updateUI() {
         if (itemsAdapter == null) {
             itemsAdapter = new ItemsAdapter(items);
             recyclerView.setAdapter(itemsAdapter);
-        } else {
-            itemsAdapter.notifyDataSetChanged();
         }
     }
     private void fetchItems() {
@@ -62,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         Collections.sort(items);
-                        updateUI();
+                        setUpSpinner();
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

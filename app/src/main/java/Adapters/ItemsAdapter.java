@@ -1,4 +1,5 @@
 package Adapters;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,8 @@ public class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.MyViewHolder
     public void onBindViewHolder(@NonNull ItemsAdapter.MyViewHolder holder, int position) {
         Item currItem = items.get(position);
         holder.itemName.setText(currItem.getName());
-        holder.itemListId.setText(String.valueOf(currItem.getListId()));
+        Log.d("BindViewHolder", "Item: " + currItem.getName());
+        //holder.itemListId.setText(String.valueOf(currItem.getListId()));
         //maybe display listId
     }
 
@@ -39,13 +41,18 @@ public class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.MyViewHolder
         return items.size();
     }
 
+    public void updateItems(List<Item> newItems) {
+        this.items.clear();
+        this.items.addAll(newItems);
+        notifyDataSetChanged();
+    }
     static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView itemName;
-        TextView itemListId;
+        //TextView itemListId;
         public MyViewHolder(@NonNull View view) {
             super(view);
             itemName = view.findViewById(R.id.itemName);
-            itemListId = view.findViewById(R.id.itemListId);
+            //itemListId = view.findViewById(R.id.itemListId);
         }
     }
 }
