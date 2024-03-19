@@ -1,6 +1,7 @@
 package com.example.fetchrewardsapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import Adapters.CustomSpinnerAdapter;
 import Adapters.ItemsAdapter;
 import Model.Item;
 
@@ -40,9 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.itemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         itemsAdapter = new ItemsAdapter(new ArrayList<>());
-
-        setUpSpinner();
+        recyclerView.setAdapter(itemsAdapter);
+        //updateUI();
         fetchItems();
     }
 
@@ -55,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(listIds);
 
         Spinner listIdSpinner = findViewById(R.id.listIdSpinner);
-        ArrayAdapter<Integer> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, listIds);
+        ArrayAdapter<Integer> spinnerAdapter = new CustomSpinnerAdapter(this, listIds);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         listIdSpinner.setAdapter(spinnerAdapter);
 
@@ -74,25 +78,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateRecyclerView(int listId) {
+        Log.d("UpdateRecyclerView", "Updating for listId: " + listId);
         List<Item> filteredItems = new ArrayList<>();
         for (Item item : items) {
-            if (item.getListId() == listId && item.getName() != "null" && !item.getName().isEmpty()) {
+            if (item.getListId() == listId) {
                 filteredItems.add(item);
             }
         }
 
-        Collections.sort(filteredItems);
+        Log.d("FilteredItems", "Filtered items count: " + filteredItems.size());
 
+        Collections.sort(filteredItems);
         if (itemsAdapter != null) {
             itemsAdapter.updateItems(filteredItems);
+        } else {
+            itemsAdapter = new ItemsAdapter(filteredItems);
+            recyclerView.setAdapter(itemsAdapter);
         }
     }
     private void updateUI() {
         if (itemsAdapter == null) {
             itemsAdapter = new ItemsAdapter(items);
             recyclerView.setAdapter(itemsAdapter);
-        } else {
-            itemsAdapter.notifyDataSetChanged();
         }
     }
     private void fetchItems() {
@@ -111,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         Collections.sort(items);
-                        updateUI();
+                        setUpSpinner();
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
